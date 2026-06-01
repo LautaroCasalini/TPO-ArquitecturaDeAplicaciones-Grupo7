@@ -1,6 +1,7 @@
 FROM maven:3.9-eclipse-temurin-21-alpine AS build
 WORKDIR /workspace
 
+# Copiamos los poms necesarios para resolver dependencias
 COPY pom.xml .
 COPY config-server/pom.xml   ./config-server/
 COPY eureka-server/pom.xml   ./eureka-server/
@@ -10,13 +11,15 @@ COPY inventory-service/pom.xml ./inventory-service/
 COPY notification-service/pom.xml ./notification-service/
 COPY order-service/pom.xml ./order-service/
 
-COPY api-gateway/src ./api-gateway/src
+# Copiamos solo el código fuente del microservicio actual
+COPY order-service/src ./order-service/src
 
-RUN mvn package -pl api-gateway -DskipTests -B && \
-    cp api-gateway/target/*.jar app.jar
+# Compilamos y generamos el JAR
+RUN mvn package -pl order-service -DskipTests -B && \
+    cp order-service/target/*.jar app.jar
 
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 COPY --from=build /workspace/app.jar app.jar
-EXPOSE 8080
+EXPOSE 8085
 ENTRYPOINT ["java", "-jar", "app.jar"]

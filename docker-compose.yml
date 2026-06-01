@@ -238,5 +238,26 @@ services:
       kafka:
         condition: service_healthy
 
+  order-service:
+    build:
+      context: .
+      dockerfile: order-service/Dockerfile
+    profiles: ["rabbitmq"]
+    ports:
+      - "8085:8085"
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: "true"
+      SPRING_PROFILES_ACTIVE: rabbitmq
+      SPRING_RABBITMQ_HOST: rabbitmq
+      MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
+    depends_on:
+      config-server:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
 volumes:
   elasticsearch-data:
